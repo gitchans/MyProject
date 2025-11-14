@@ -2,14 +2,17 @@
   "name": "myproject",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
   },
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@supabase/supabase-js": "^2.81.1",
     "bcryptjs": "^3.0.2",
     "better-sqlite3": "^12.4.1",
     "cors": "^2.8.5",
