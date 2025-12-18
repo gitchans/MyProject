@@ -422,6 +422,8 @@ app.get('/api/logs/summary', auth, async (req, res) => {
   const daysInMonth = new Date(y, m, 0).getDate(); 
   const result = [];
 
+  const today = new Date().toISOString().split('T')[0];
+
   // 1) 스케줄 + frequency JOIN 조회
   const { data: schedules, error: schErr } = await supabase
     .from('medication_schedule')
@@ -443,11 +445,16 @@ app.get('/api/logs/summary', auth, async (req, res) => {
   // 2) 날짜별 처리
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${month}-${String(d).padStart(2, '0')}`;
-    const dateObj = new Date(dateStr);
 
+    // ✅ 미래 날짜 → 판단하지 않음
+    if (dateStr > today) {
+      result.push(false);
+      continue;
+    }
+
+    const dateObj = new Date(dateStr);
     const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dateObj.getDay()];
 
-    // 오늘 먹어야 하는 횟수 계산
     let requiredCount = 0;
 
     schedules.forEach(sch => {
@@ -456,13 +463,12 @@ app.get('/api/logs/summary', auth, async (req, res) => {
       }
     });
 
-    // 먹을 약이 없는 날 → 자동 true
+    // 먹을 약이 없는 날 → true
     if (requiredCount === 0) {
       result.push(true);
       continue;
     }
 
-    // 3) 실제 먹은 기록 조회 (taken_at : timestamp)
     const start = `${dateStr} 00:00:00`;
     const end = `${dateStr} 23:59:59`;
 
@@ -477,7 +483,6 @@ app.get('/api/logs/summary', auth, async (req, res) => {
 
     const takenCount = logs?.length || 0;
 
-    // requiredCount == takenCount → true
     result.push(takenCount >= requiredCount);
   }
 
